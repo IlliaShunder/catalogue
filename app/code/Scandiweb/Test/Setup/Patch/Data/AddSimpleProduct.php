@@ -19,28 +19,49 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Model\CategoryFactory;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Framework\App\State;
+use Magento\Catalog\Api\CategoryLinkManagementInterface;
 
 class AddSimpleProduct implements DataPatchInterface
 {
     /**
+     * @var ModuleDataSetupInterface
+     */
+    protected ModuleDataSetupInterface $moduleDataSetup;
+
+    /**
+     * @var ProductInterfaceFactory
+     */
+    protected ProductInterfaceFactory $productFactory;
+
+    /**
      * @var ProductRepositoryInterface
      */
-    protected $productRepository;
+    protected ProductRepositoryInterface $productRepository;
 
     /**
      * @var CategoryFactory
      */
-    protected $categoryFactory;
+    protected CategoryFactory $categoryFactory;
 
     /**
      * @var CategoryRepositoryInterface
      */
-    protected $categoryRepository;
+    protected CategoryRepositoryInterface $categoryRepository;
 
     /**
      * @var StoreManagerInterface
      */
-    protected $storeManager;
+    protected StoreManagerInterface $storeManager;
+
+    /**
+    * @var State
+    */
+    protected State $state;
+
+    /**
+    * @var CategoryLinkManagementInterface
+    */
+    protected CategoryLinkManagementInterface $categoryLink;
 
     /**
      * CreateSimpleProduct constructor.
@@ -50,6 +71,8 @@ class AddSimpleProduct implements DataPatchInterface
      * @param CategoryFactory $categoryFactory
      * @param CategoryRepositoryInterface $categoryRepository
      * @param StoreManagerInterface $storeManager
+     * @param State $state
+     * @param CategoryLinkManagementInterface $categoryLink
      */
     public function __construct(
         ModuleDataSetupInterface $moduleDataSetup,
@@ -58,25 +81,36 @@ class AddSimpleProduct implements DataPatchInterface
         CategoryFactory $categoryFactory,
         CategoryRepositoryInterface $categoryRepository,
         StoreManagerInterface $storeManager,
-        State $state
-    )
-    {
+        State $state,
+        CategoryLinkManagementInterface $categoryLink
+    ) {
         $this->moduleDataSetup    = $moduleDataSetup;
         $this->productFactory     = $productFactory;
         $this->productRepository  = $productRepository;
         $this->categoryFactory    = $categoryFactory;
         $this->categoryRepository = $categoryRepository;
         $this->storeManager       = $storeManager;
-        $state->setAreaCode('adminhtml');
+        $this->state              = $state;
+        $this->categoryLink       = $categoryLink;
     }
-
+       
     /**
-     * @return string
+     * apply
+     *
+     * @return void
      */
     public function apply()
     {
-        $product = $this->productFactory->create();
+        $this->state->emulateAreaCode('adminhtml', [$this, 'execute']);
+    }
 
+    /**
+     * execute
+     * 
+     * @return void
+     */
+    public function execute(): void
+    {
         $simpleProductArray = [
             [
                 'sku'               => 'SIMPLE-PRODUCT',
@@ -103,30 +137,36 @@ class AddSimpleProduct implements DataPatchInterface
                 ->setTypeId($data['type_id'])
                 ->setCategoryIds(12)
                 ->setStockData(
-                    array(
-                        'use_config_manage_stock' => 0,
+                    [
+                        'use_config_manage_stock' => 1,
                         'manage_stock' => 1,
                         'is_in_stock' => 1,
                         'qty' => 199
-                    )
+                    ]
                 );
-            $product = $this->productRepository->save($product);
-            $product->save();
+
+            $this->productRepository->save($product);
+            $this->categoryLink->assignProductToCategories($product->getSku(), [12]);
         }
     }
-
-    public static function getDependencies()
+    
+    /**
+     * getDependencies
+     *
+     * @return array
+     */
+    public static function getDependencies(): array
     {
         return [];
     }
-
-    public function getAliases()
+    
+    /**
+     * getAliases
+     *
+     * @return array
+     */
+    public function getAliases(): array
     {
         return [];
-    }
-
-    public static function getVersion()
-    {
-        return '2.4.4';
     }
 }
