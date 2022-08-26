@@ -54,13 +54,13 @@ class AddSimpleProduct implements DataPatchInterface
     protected StoreManagerInterface $storeManager;
 
     /**
-    * @var State
-    */
+     * @var State
+     */
     protected State $state;
 
     /**
-    * @var CategoryLinkManagementInterface
-    */
+     * @var CategoryLinkManagementInterface
+     */
     protected CategoryLinkManagementInterface $categoryLink;
 
     /**
@@ -84,22 +84,24 @@ class AddSimpleProduct implements DataPatchInterface
         State $state,
         CategoryLinkManagementInterface $categoryLink
     ) {
-        $this->moduleDataSetup    = $moduleDataSetup;
-        $this->productFactory     = $productFactory;
-        $this->productRepository  = $productRepository;
-        $this->categoryFactory    = $categoryFactory;
+        $this->moduleDataSetup = $moduleDataSetup;
+        $this->productFactory = $productFactory;
+        $this->productRepository = $productRepository;
+        $this->categoryFactory = $categoryFactory;
         $this->categoryRepository = $categoryRepository;
-        $this->storeManager       = $storeManager;
-        $this->state              = $state;
-        $this->categoryLink       = $categoryLink;
+        $this->storeManager = $storeManager;
+        $this->state = $state;
+        $this->categoryLink = $categoryLink;
     }
-       
+
     /**
      * apply
-     *
+     * 
+     * run the emulation
+     * 
      * @return void
      */
-    public function apply()
+    public function apply(): void
     {
         $this->state->emulateAreaCode('adminhtml', [$this, 'execute']);
     }
@@ -107,20 +109,22 @@ class AddSimpleProduct implements DataPatchInterface
     /**
      * execute
      * 
+     * create product
+     * 
      * @return void
      */
     public function execute(): void
     {
         $simpleProductArray = [
             [
-                'sku'               => 'SIMPLE-PRODUCT',
-                'name'              => 'Some simple product',
-                'attribute_id'      => '4',
-                'status'            => 1,
-                'weight'            => 2,
-                'price'             => 100,
-                'visibility'        => 1,
-                'type_id'           => 'simple',
+                'sku' => 'SIMPLE-PRODUCT',
+                'name' => 'Some simple product',
+                'attribute_id' => '4',
+                'status' => 1,
+                'weight' => 2,
+                'price' => 100,
+                'visibility' => 1,
+                'type_id' => 'simple',
             ]
         ];
 
@@ -149,7 +153,7 @@ class AddSimpleProduct implements DataPatchInterface
             $this->categoryLink->assignProductToCategories($product->getSku(), [12]);
         }
     }
-    
+
     /**
      * getDependencies
      *
@@ -159,7 +163,7 @@ class AddSimpleProduct implements DataPatchInterface
     {
         return [];
     }
-    
+
     /**
      * getAliases
      *
